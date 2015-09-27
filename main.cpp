@@ -1,11 +1,12 @@
 #include <iostream>
 #include <set>
+#include <algorithm>
 
 using namespace std;
 
 pair<set<string>, bool> getPhoneList();
 bool addPhoneNumber(set<string>&, const string&, const bool&);
-bool is_subset_of(const string&, const string&);
+bool is_prefix_of(const string&, const string&);
 
 int main() {
     
@@ -33,20 +34,17 @@ int main() {
 bool addPhoneNumber(set<string>& phone_list, const string& phone_number, const bool& is_consistent)
 {
     auto ret_val = phone_list.insert(phone_number);
-    if (is_consistent)
+    if (is_consistent && ret_val.second)
     {
-        if (ret_val.second)
+        if (ret_val.first != phone_list.begin())
         {
-            if (ret_val.first != phone_list.begin())
-            {
-                auto prev_it = prev(ret_val.first);
-                if ( is_subset_of(*prev_it, phone_number) )
-                    return false;
-            }
-            auto next_it = next(ret_val.first);
-            if ( next_it != phone_list.end() && is_subset_of(phone_number, *next_it) )
+            auto prev_it = prev(ret_val.first);
+            if ( is_prefix_of(*prev_it, phone_number) )
                 return false;
         }
+        auto next_it = next(ret_val.first);
+        if ( next_it != phone_list.end() && is_prefix_of(phone_number, *next_it) )
+            return false;
     }
 
     return true;
@@ -77,9 +75,9 @@ pair<set<string>, bool> getPhoneList()
     return make_pair(phone_list, is_consistent);
 }
 
-bool is_subset_of(const string& lhs, const string& rhs)
+bool is_prefix_of(const string& number, const string& other)
 {
-    if (lhs.compare(0,lhs.length(), rhs, 0, lhs.length()) != 0)
-        return false;
-    return true;
+    if (mismatch(number.begin(), number.end(), other.begin()).first == number.end())
+        return true;
+    return false;
 }
